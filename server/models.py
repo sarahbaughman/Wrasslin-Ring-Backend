@@ -5,9 +5,10 @@ from sqlalchemy.orm import validates
 from sqlalchemy.ext.associationproxy import association_proxy
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy.ext.hybrid import hybrid_property
 
-from config import db
-# bcrypt
+from config import db, bcrypt
+
 
 # Models
 
@@ -28,6 +29,8 @@ class User(db.Model, SerializerMixin):
     email = db.Column(db.String, nullable = False)
     instagram = db.Column(db.String)
     payment = db.Column(db.String)
+    username = db.Column(db.String, nullable = False)
+    _password_hash = db.Column(db.String, nullable = False)
     # role = db.Column(db.String, default = 'wrestler')
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
@@ -90,7 +93,27 @@ class User(db.Model, SerializerMixin):
             abort(422, "Instagram handle must be in the following format: @username, using only numbers, letters, underscores and periods. Please try again.")
         else:
             return instagram
+    
+    @validates('payment')
+    def validate_payment(self, attr, payment):
+        if type(payment) is str and 8 <= len(payment) <=30 :
+            return payment
+        else:
+            abort(422, "Payment method must be a string and written in the following format: Venmo: Username or Cashapp: Username, etc. Please try again.")
 
+    @hybrid_property
+    def password_hash(self):
+        raise AttributeError("Password hashes can't be viewed")
+
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8') )
+        self._password_hash = password_hash.decode('utf-8')
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(
+            self._password_hash, password.encode('utf-8')
+        )
 
 
 class Match(db.Model, SerializerMixin):
