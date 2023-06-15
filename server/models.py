@@ -1,6 +1,10 @@
+import re
+from flask import Flask, abort
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.orm import validates
 from sqlalchemy.ext.associationproxy import association_proxy
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 from config import db
 # bcrypt
@@ -12,12 +16,14 @@ from config import db
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    # serializer 
+    # serializer
+    serialize_only = ('id', 'name', 'regions', 'weight', 'phone', 'email', 'instagram',)
+
 
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, nullable = False)
     regions = db.Column(db.String)
-    weight = db.Column(db.String, nullable = False)
+    weight = db.Column(db.Integer, nullable = False)
     phone = db.Column(db.String)
     email = db.Column(db.String, nullable = False)
     instagram = db.Column(db.String)
@@ -35,9 +41,57 @@ class User(db.Model, SerializerMixin):
     user_promotions = db.relationship('UserPromotion', back_populates = 'user')
     promotions = association_proxy('user_promotions', 'promotion',creator=lambda p: UserPromotion(promotion = p))
 
+    user_shows = db.relationship('UserShow', back_populates = 'user')
+    shows = association_proxy('user_shows', 'show',creator=lambda s: UserShow(show = s))
 
     def __repr__(self):
         return f'User {self.id} : {self.name}'
+
+    @validates('name')
+    def validate_name(self, attr, name):
+        if type(name) is str and name and len(name) >= 1: 
+            return name
+        else:
+            abort(422, "Name must be entered and be a string of at least 1 character in length. Please try again.")
+    
+    @validates('regions')
+    def validate_regions(self, attr, regions):
+        if type(regions) is str and len(regions) >= 1: 
+            return regions
+        else:
+            abort(422, "Regions must be a string of at least 1 character in length. Please try again.")
+    
+    @validates('weight')
+    def validate_weight(self, attr, weight):
+        if 2 <= len(str(weight)) <= 3 : 
+            return weight
+        else:
+            abort(422, "Weight must be an integer either 2 or 3 digits long. Please try again.")
+    
+    @validates('phone')
+    def validate_phone(self, attr, phone):
+        if 15 <= len(phone) <= 12: 
+            return phone
+        else:
+            abort(422, "Phone number must be written in the following format: +1-xxx-xxx-xxxx. Please try again.")
+    
+    @validates('email')
+    def validate_email(self, attr, email):
+        if '@' not in email or '.' not in email:
+            abort(422, "Email must be in the following format: youremail@somemail.com . Please try again.")
+        else:
+            return email
+    
+    @validates('instagram')
+    def validate_instagram(self, attr, instagram):
+        pattern = r'^[a-zA-Z0-9@_.]+$'
+
+        if not re.match(pattern, instagram) or not len(instagram) <= 30:
+            abort(422, "Instagram handle must be in the following format: @username, using only numbers, letters, underscores and periods. Please try again.")
+        else:
+            return instagram
+
+
 
 class Match(db.Model, SerializerMixin):
     __tablename__ = 'matches'
@@ -97,6 +151,9 @@ class Show(db.Model, SerializerMixin):
     promotion = db.relationship('Promotion', back_populates = 'shows')
 
     matches = db.relationship('Match', back_populates = 'show')
+
+    user_shows = db.relationship('UserShow', back_populates = 'show')
+    users = association_proxy('user_shows', 'user',creator=lambda u: UserShow(user = u))
 
     def __repr__(self):
         return f'Show {self.id} : {self.name}'
@@ -181,5 +238,23 @@ class UserPromotion(db.Model, SerializerMixin):
     user = db.relationship('User', back_populates = 'user_promotions')
 
     def __repr__(self):
-        return f'ProposedMatchWrestler {self.id}'
+        return f'UserPromotion {self.id}'
+
+class UserShow(db.Model, SerializerMixin):
+    __tablename__ = 'user_shows'
+
+    serialize_only = ('show.name', 'user.name',) 
+
+    id = db.Column(db.Integer, primary_key = True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+
+    show_id = db.Column(db.Integer, db.ForeignKey('shows.id'))
+    user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
+
+    show = db.relationship('Show', back_populates = 'user_shows')
+    user = db.relationship('User', back_populates = 'user_shows')
+
+    def __repr__(self):
+        return f'UserShow {self.id}'
 

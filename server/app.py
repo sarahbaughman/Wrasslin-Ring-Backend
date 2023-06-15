@@ -9,7 +9,7 @@ from flask_restful import Resource
 # Local imports
 from config import app, db, api
 
-# from models import User, Recipe
+from models import User, Match, MatchWrestler, Show, Promotion, ProposedMatch, ProposedMatchWrestler, UserPromotion, UserShow
 
 # Views go here!
 
