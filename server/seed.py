@@ -8,7 +8,13 @@ from faker import Faker
 
 # Local imports
 from app import app
-from models import db
+
+# from models import db, MODELS MODELS MODELS
+
+# with app.app_context():
+#     # seed here!
+
+fake = Faker()
 
 if __name__ == '__main__':
     fake = Faker()
