@@ -27,8 +27,13 @@ class User(db.Model, SerializerMixin):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     match_wrestlers = db.relationship('MatchWrestler', back_populates = 'user')
-    
     matches = association_proxy('match_wrestlers', 'match', creator=lambda m: MatchWrestler(match = m))
+    
+    proposed_match_wrestlers = db.relationship('ProposedMatchWrestler', back_populates = 'user')
+    proposed_matches = association_proxy('proposed_match_wrestlers', 'proposed_match', creator=lambda pm: ProposedMatchWrestler(proposed_match = pm) )
+
+    user_promotions = db.relationship('UserPromotion', back_populates = 'user')
+    promotions = association_proxy('user_promotions', 'promotion',creator=lambda p: UserPromotion(promotion = p))
 
 
     def __repr__(self):
@@ -93,8 +98,6 @@ class Show(db.Model, SerializerMixin):
 
     matches = db.relationship('Match', back_populates = 'show')
 
-
-
     def __repr__(self):
         return f'Show {self.id} : {self.name}'
 
@@ -115,14 +118,11 @@ class Promotion(db.Model, SerializerMixin):
 
     shows = db.relationship('Show', back_populates = 'promotion')
 
-
+    user_promotions = db.relationship('UserPromotion', back_populates = 'promotion')
+    users = association_proxy('user_promotions', 'user',creator=lambda u: UserPromotion(user = u))
 
     def __repr__(self):
         return f'Promotion {self.id} : {self.name}'
-
-
-
-
 
 
 class ProposedMatch(db.Model, SerializerMixin):
@@ -140,8 +140,7 @@ class ProposedMatch(db.Model, SerializerMixin):
     promotion = db.relationship('Promotion', back_populates = 'proposed_matches')
 
     proposed_match_wrestlers = db.relationship('ProposedMatchWrestler', back_populates = 'proposed_match', cascade = 'all, delete-orphan')
-
-
+    users = association_proxy('proposed_match_wrestlers', 'user', creator=lambda u: ProposedMatchWrestler(user = u) )
 
     def __repr__(self):
         return f'ProposedMatch {self.id}'
@@ -158,6 +157,28 @@ class ProposedMatchWrestler(db.Model, SerializerMixin):
 
     proposed_match_id = db.Column(db.Integer, db.ForeignKey('proposed_matches.id'))
     proposed_match = db.relationship('ProposedMatch', back_populates = 'proposed_match_wrestlers')
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user = db.relationship('User', back_populates = 'proposed_match_wrestlers')
+
+    def __repr__(self):
+        return f'ProposedMatchWrestler {self.id}'
+
+
+class UserPromotion(db.Model, SerializerMixin):
+    __tablename__ = 'user_promotions'
+
+    # serializer 
+
+    id = db.Column(db.Integer, primary_key = True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+
+    promotion_id = db.Column(db.Integer, db.ForeignKey('promotions.id'))
+    user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
+
+    promotion = db.relationship('Promotion', back_populates = 'user_promotions')
+    user = db.relationship('User', back_populates = 'user_promotions')
 
     def __repr__(self):
         return f'ProposedMatchWrestler {self.id}'
