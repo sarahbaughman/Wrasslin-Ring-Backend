@@ -7,8 +7,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from config import db, bcrypt
+from config import db
 
+# bcrypt
 
 # Models
 
@@ -18,7 +19,15 @@ class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     # serializer
-    serialize_only = ('id', 'name', 'regions', 'weight', 'phone', 'email', 'instagram',)
+    serialize_rules = ('-match_wrestlers.user', 
+                        '-matches.users', 
+                        '-proposed_match_wrestlers.user', 
+                        '-proposed_matches.users', 
+                        '-user_promotions.user',
+                        '-promotions.users',
+                        '-user_shows.user',
+                        '-shows.users',
+                        )
 
 
     id = db.Column(db.Integer, primary_key = True)
@@ -101,25 +110,28 @@ class User(db.Model, SerializerMixin):
         else:
             abort(422, "Payment method must be a string and written in the following format: Venmo: Username or Cashapp: Username, etc. Please try again.")
 
-    @hybrid_property
-    def password_hash(self):
-        raise AttributeError("Password hashes can't be viewed")
+    # @hybrid_property
+    # def password_hash(self):
+    #     raise AttributeError("Password hashes can't be viewed")
 
-    @password_hash.setter
-    def password_hash(self, password):
-        password_hash = bcrypt.generate_password_hash(password.encode('utf-8') )
-        self._password_hash = password_hash.decode('utf-8')
+    # @password_hash.setter
+    # def password_hash(self, password):
+    #     password_hash = bcrypt.generate_password_hash(password.encode('utf-8') )
+    #     self._password_hash = password_hash.decode('utf-8')
 
-    def authenticate(self, password):
-        return bcrypt.check_password_hash(
-            self._password_hash, password.encode('utf-8')
-        )
+    # def authenticate(self, password):
+    #     return bcrypt.check_password_hash(
+    #         self._password_hash, password.encode('utf-8')
+    #     )
 
 
 class Match(db.Model, SerializerMixin):
     __tablename__ = 'matches'
 
-    # serializer 
+    serialize_rules = ('-show.matches', 
+                        '-match_wrestlers.match', 
+                        '-users.matches',
+                        )
 
     id = db.Column(db.Integer, primary_key = True)
     type = db.Column(db.String, nullable = True)
@@ -139,7 +151,9 @@ class Match(db.Model, SerializerMixin):
 class MatchWrestler(db.Model, SerializerMixin):
     __tablename__ = 'match_wrestlers'
 
-    # serializer 
+    serialize_rules = ('-match.match_wrestlers', 
+                       '-user.match_wrestlers',
+                       )
 
     id = db.Column(db.Integer, primary_key = True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -157,7 +171,11 @@ class MatchWrestler(db.Model, SerializerMixin):
 class Show(db.Model, SerializerMixin):
     __tablename__ = 'shows'
 
-    # serializer 
+    serialize_rules = ('-promotion.shows', 
+                       '-matches.show', 
+                       '-user_shows.show', 
+                       '-users.shows',
+                       ) 
 
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, nullable = False)
@@ -184,8 +202,12 @@ class Show(db.Model, SerializerMixin):
 class Promotion(db.Model, SerializerMixin):
     __tablename__ = 'promotions'
 
-    # serializer 
-
+    serialize_rules = ('-proposed_matches.promotion', 
+                       '-shows.promotion', 
+                       '-user_promotions.promotion', 
+                       '-users.promotions',
+                       )
+    
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, nullable = False)
     # promoter = db.Column(db.?) //need to figure this out __________________________
@@ -208,7 +230,10 @@ class Promotion(db.Model, SerializerMixin):
 class ProposedMatch(db.Model, SerializerMixin):
     __tablename__ = 'proposed_matches'
 
-    # serializer 
+    serialize_rules = ('-promtion.proposed_matches', 
+                       '-users.proposed_matches', 
+                       '-proposed_match_wrestlers.proposed_match',
+                       )
 
     id = db.Column(db.Integer, primary_key = True)
     storyline = db.Column(db.String)
@@ -229,7 +254,9 @@ class ProposedMatch(db.Model, SerializerMixin):
 class ProposedMatchWrestler(db.Model, SerializerMixin):
     __tablename__ = 'proposed_match_wrestlers'
 
-    # serializer 
+    serialize_rules = ('-user.proposed_match_wrestlers', 
+                       '-proposed_match.proposed_match_wrestlers',
+                       )
 
     id = db.Column(db.Integer, primary_key = True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -248,7 +275,9 @@ class ProposedMatchWrestler(db.Model, SerializerMixin):
 class UserPromotion(db.Model, SerializerMixin):
     __tablename__ = 'user_promotions'
 
-    # serializer 
+    serialize_rules = ('-promotion.user_promotions', 
+                       '-user.user_promotions',
+                       ) 
 
     id = db.Column(db.Integer, primary_key = True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -266,7 +295,9 @@ class UserPromotion(db.Model, SerializerMixin):
 class UserShow(db.Model, SerializerMixin):
     __tablename__ = 'user_shows'
 
-    serialize_only = ('show.name', 'user.name',) 
+    serialize_rules = ('-show.user_shows', 
+                       '-user.user_shows',
+                       ) 
 
     id = db.Column(db.Integer, primary_key = True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
