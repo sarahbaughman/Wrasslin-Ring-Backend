@@ -9,70 +9,361 @@ from flask_restful import Api, Resource
 # Local imports
 from config import app, db, api
 
-from models import User, Match, MatchWrestler, Show, Promotion, ProposedMatch, ProposedMatchWrestler, UserPromotion, UserShow
+from models import User, Match, MatchWrestler, Show, Promotion, ProposedMatch, ProposedMatchWrestler
 
 # Views go here!
 api = Api(app)
 
 
 
-@app.before_request
-def check_if_logged_in():
-    open_access_list = [
-        'login',
-        'logout',
-        'check_session'
-    ]
+# @app.before_request
+# def check_if_logged_in():
+#     open_access_list = [
+#         'login',
+#         'logout',
+#         'check_session'
+#     ]
 
-    if (request.endpoint) not in open_access_list and (not session.get('user_id')):
-        return {'error': '401 Unauthorized'}, 401
+#     if (request.endpoint) not in open_access_list and (not session.get('user_id')):
+#         return {'error': '401 Unauthorized'}, 401
 
-class CheckSession(Resource):
+# class CheckSession(Resource):
 
-    def get(self):
-        if session.get('user_id'):
-            user = User.query.filter(User.id == session.get('user_id')).first()
-            return user.to_dict(), 200
+#     def get(self):
+#         if session.get('user_id'):
+#             user = User.query.filter(User.id == session.get('user_id')).first()
+#             return user.to_dict(), 200
 
-        return {'error': '401: Not Authorized'}, 401
+#         return {'error': '401: Not Authorized'}, 401
         
 
-api.add_resource(CheckSession, '/check_session')
+# api.add_resource(CheckSession, '/check_session')
 
 
-class Login(Resource):
+# class Login(Resource):
 
-    def post(self):
-        user_input = request.get_json()
-        username = user_input.get('username')
-        password = user_input.get('password')
-        user = User.query.filter_by(username=username).first()
-        if user and user.authenticate(password):
-            session['user_id'] = user.id
-            return user.to_dict(), 200
-        return {'error': '401 Unauthorized'}, 401
+#     def post(self):
+#         user_input = request.get_json()
+#         password = user_input.get('password')
+
+#         user = User.query.filter(User.name.like(f"%{user_input['username']}%")).first()
+#         if user and user.authenticate(password):
+#             session['user_id'] = user.id
+
+#             user_response = {
+#             "id" : user.id,
+#             "name" : user.name,
+#             "regions" : user.regions,
+#             "weight" : user.weight,
+#             "phone" : user.phone,
+#             "email" : user.email,
+#             "instagram" : user.instagram,
+#             "payment" : user.payment,
+#             "username" : user.username,
+#         }
+#             return user_response, 200
+        
+#         return {'error': ['Username or password invalid. Please try again.']}, 401
     
-api.add_resource(Login, '/login' )
+# api.add_resource(Login, '/login', endpoint = 'login' )
 
 
 
-class Logout(Resource):
-    def delete(self): 
-        if session.get('user_id'):
-            session['user_id'] = None
-            return {}, 204
-        return {'error': '204: 401 Unauthorized'}, 204
+# class Logout(Resource):
+#     def delete(self): 
+#         if session.get('user_id'):
+#             session['user_id'] = None
+#             return {}, 204
+#         return {'error': '204: 401 Unauthorized'}, 204
 
-api.add_resource(Logout, '/logout')
+# api.add_resource(Logout, '/logout')
 
-
-# class MemberOnlyIndex(Resource):
+# class Users(Resource):
+#     def get (self):
+#         users = User.query.all()
+#         users_dict = [u.to_dict() for u in users]
+#         return users_dict, 200
     
+#     def post (self):
+#         data = request.get_json()
+#         new_user = User(
+#             name = data['name'],
+#             regions = data['regions'],
+#             weight = data['weight'],
+#             phone = data['phone'],
+#             email = data['email'],
+#             instagram = data['instagram'],
+#             payment = data['payment'],
+#             username = data['username'],
+#             password = data['password'],
+#         )
+#         db.session.add(new_user)
+#         db.session.commit()
+
+#         session['user_id'] = new_user.id
+
+#         user_response = {
+#             "id" : new_user.id,
+#             "name" : new_user.name,
+#             "regions" : new_user.regions,
+#             "weight" : new_user.weight,
+#             "phone" : new_user.phone,
+#             "email" : new_user.email,
+#             "instagram" : new_user.instagram,
+#             "payment" : new_user.payment,
+#             "username" : new_user.username,
+#         }
+
+#         return user_response, 201
+
+# api.add_resource(Users, '/users')
+
+# class Matches(Resource):
 #     def get(self):
+#         matches = Match.query.all()
+#         matches_dict = [m.to_dict for m in matches]
+
+#         return matches_dict, 200
     
-#         articles = Article.query.filter(Article.is_member_only == True).all()
-#         return [article.to_dict() for article in articles], 200
-# Inspiration for promoter vs wrestler access
+#     def post(self):
+#         user_input = request.get_json()
+#         new_match = Match(
+#             type = user_input['type'],
+#             storyline = user_input['storyline'],
+#             show_id = user_input['show_id'],
+#         )
+#         db.session.add(new_match)
+#         db.session.commit()
+
+#         return new_match.to_dict, 201
+
+# api.add_resource(Matches,'/matches', endpoint = 'matches')
+
+# class MatchById(Resource):
+#     def get(self, id):
+#         match = Match.query.filter(Match.id == id).first()
+#         if match:
+#             return match.to_dict
+#         else:
+#             return {'error': 'Match not found. Please try again.'}, 404
+
+#     def patch(self, id):
+#         match = Match.query.filter(Match.id == id).first()
+#         if match:
+#             for attr in request.get_json():
+#                 setattr(match, attr, request.get_json[attr])
+#             db.session.add(match)
+#             db.session.commit()
+
+#             return match.to_dict(), 200
+#         else:
+#             return {'error': 'Match not found. Please try again.'}, 404
+    
+#     def delete(self,id):
+#         match = Match.query.filter(Match.id == id).first()
+#         if match:
+#             db.session.delete(match)
+#             db.session.commit()
+#             return {}, 204
+        
+#         else:
+#             return {'error': 'Match not found. Please try again.'}, 404
+
+# api.add_resource(MatchById,'/matches/<int:id>', endpoint = 'matches/<int:id>')
+
+
+# class Shows(Resource):
+#     def get(self):
+#         shows = Show.query.all()
+#         shows_dict = [s.to_dict for s in shows]
+
+#         return shows_dict, 200
+    
+#     def post(self):
+#         user_input = request.get_json()
+#         new_show = Show(
+#             name = user_input['name'],
+#             venue = user_input['venue'],
+#             address = user_input['address'],
+#             city = user_input['city'],
+#             state = user_input['state'],
+#             date = user_input['date'],
+#             where_to_view = user_input['where_to_view'],
+
+#         )
+
+#         db.session.add(new_show)
+#         db.session.commit()
+
+#         return new_show.to_dict, 201
+
+# api.add_resource(Shows,'/shows', endpoint = 'shows')
+
+# class ShowById(Resource):
+#     def get(self, id):
+#         show = Show.query.filter(Show.id == id).first()
+#         if show:
+#             return show.to_dict
+#         else:
+#             return {'error': 'Show not found. Please try again.'}, 404
+    
+#     def patch(self, id):
+#         show = Show.query.filter(Show.id == id).first()
+#         if show:
+#             for attr in request.get_json():
+#                 setattr(show, attr, request.get_json[attr])
+#             db.session.add(show)
+#             db.session.commit()
+
+#             return show.to_dict(), 200
+#         else:
+#             return {'error': 'Show not found. Please try again.'}, 404
+    
+#     def delete(self,id):
+#         show = Show.query.filter(Show.id == id).first()
+#         if show:
+#             db.session.delete(show)
+#             db.session.commit()
+#             return {}, 204
+        
+#         else:
+#             return {'error': 'Show not found. Please try again.'}, 404
+
+# api.add_resource(MatchById,'/matches/<int:id>', endpoint = 'matches/<int:id>')
+
+
+# class Promotions(Resource):
+#     def get(self):
+#         promotions = Promotion.query.all()
+#         promotions_dict = [p.to_dict for p in promotions] 
+
+#         return promotions_dict, 200
+    
+#     def post(self):
+#         user_input = request.get_json()
+#         new_promotion = Promotion(
+#             name = user_input['name'],
+#             # promoter = user_input['promoter'],
+#             # username = user_input['username']
+#             # password = user_input['password']
+#         )
+
+#         db.session.add(new_promotion)
+#         db.session.commit()
+
+#         promotion_response = {
+#             "name" : new_promotion.name,
+#             # "promoter" : new_promotion.promoter,
+#         }
+
+#         return promotion_response.to_dict, 201
+
+# api.add_resource(Promotions, '/promotions', endpoint = '/promotions')
+
+
+# class PromotionById(Resource):
+#     def get(self, id):
+#         promotion = Promotion.query.filter(Promotion.id == id).first()
+#         if promotion:
+
+#             promotion_response = {
+#             "name" : self.name,
+#             # "promoter" : self.promoter,
+#         }
+#             return promotion_response, 200
+#         else:
+#             return {'error': 'Promotion not found. Please try again.'}, 404
+    
+#     def patch(self, id):
+#         promotion = Promotion.query.filter(Promotion.id == id).first()
+#         if promotion:
+#             for attr in request.get_json():
+#                 setattr(promotion, attr, request.get_json[attr])
+#             db.session.add(promotion)
+#             db.session.commit()
+
+#             promotion_response = {
+#             "name" : self.name,
+#             # "promoter" : self.promoter,
+#         }
+
+#             return promotion_response.to_dict(), 200
+#         else:
+#             return {'error': 'Promotion not found. Please try again.'}, 404
+    
+#     def delete(self,id):
+#         promotion = Promotion.query.filter(Promotion.id == id).first()
+#         if promotion:
+#             db.session.delete(promotion)
+#             db.session.commit()
+#             return {}, 204
+        
+#         else:
+#             return {'error': 'Promotion not found. Please try again.'}, 404
+
+# api.add_resource(PromotionById,'/promotions/<int:id>', endpoint = '/promotions/<int:id>')
+
+
+# class ProposedMatches(Resource):
+#     def get(self):
+#         proposed_matches = ProposedMatch.query.all()
+#         proposed_matches_dict = [pm.to_dict for pm in proposed_matches] 
+
+#         return proposed_matches_dict, 200
+    
+#     def post(self):
+#         user_input = request.get_json()
+#         new_proposed_match = ProposedMatch(
+#             storyline = user_input['storyline'],
+#             type = user_input['type'],
+#             promotion_id = user_input['promotion_id'],
+
+#         )
+
+#         db.session.add(new_proposed_match)
+#         db.session.commit()
+
+#         return new_proposed_match.to_dict, 201
+
+# api.add_resource(ProposedMatches, '/proposedmatches', endpoint = '/proposedmatches')
+
+
+# class ProposedMatchById(Resource):
+#     def get(self, id):
+#         proposed_match = ProposedMatch.query.filter(ProposedMatch.id == id).first()
+        
+#         if proposed_match:
+#             return proposed_match, 200
+        
+#         else:
+#             return {'error': 'Proposed match not found. Please try again.'}, 404
+    
+#     def patch(self, id):
+#         proposed_match = ProposedMatch.query.filter(ProposedMatch.id == id).first()
+
+#         if proposed_match: 
+#             for attr in request.get_json():
+#                 setattr(proposed_match, attr, request.get_json[attr])
+#             db.session.add(proposed_match)
+#             db.session.commit()
+
+#             return proposed_match.to_dict(), 200
+#         else:
+#             return {'error': 'Proposed match not found. Please try again.'}, 404
+    
+#     def delete(self,id):
+#         proposed_match = ProposedMatch.query.filter(ProposedMatch.id == id).first()
+#         if proposed_match:
+#             db.session.delete(proposed_match)
+#             db.session.commit()
+#             return {}, 204
+        
+#         else:
+#             return {'error': 'Proposed match not found. Please try again.'}, 404
+
+# api.add_resource(ProposedMatchById, '/proposedmatches/<int:id>', endpoint = '/proposedmatches/<int:id>')
+
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
