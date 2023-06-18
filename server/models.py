@@ -6,7 +6,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy.ext.hybrid import hybrid_property
-from config import db
+from config import db, bcrypt
 
 # bcrypt
 
@@ -49,14 +49,22 @@ class User(db.Model, SerializerMixin):
     proposed_match_wrestlers = db.relationship('ProposedMatchWrestler', back_populates = 'user')
     proposed_matches = association_proxy('proposed_match_wrestlers', 'proposed_match', creator=lambda pm: ProposedMatchWrestler(proposed_match = pm) )
 
-    # user_promotions = db.relationship('UserPromotion', back_populates = 'user')
-    # promotions = association_proxy('user_promotions', 'promotion',creator=lambda p: UserPromotion(promotion = p))
-
-    # user_shows = db.relationship('UserShow', back_populates = 'user')
-    # shows = association_proxy('user_shows', 'show',creator=lambda s: UserShow(show = s))
-
     def __repr__(self):
         return f'User {self.id} : {self.name}'
+    
+
+    @hybrid_property
+    def password_hash(self):
+        raise Exception('Password hashes may not be viewed.')
+
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(
+            self._password_hash, password.encode('utf-8'))
 
     # @validates('name')
     # def validate_name(self, attr, name):
@@ -109,19 +117,12 @@ class User(db.Model, SerializerMixin):
     #     else:
     #         abort(422, "Payment method must be a string and written in the following format: Venmo: Username or Cashapp: Username, etc. Please try again.")
 
-    # @hybrid_property
-    # def password_hash(self):
-    #     raise AttributeError("Password hashes can't be viewed")
 
-    # @password_hash.setter
-    # def password_hash(self, password):
-    #     password_hash = bcrypt.generate_password_hash(password.encode('utf-8') )
-    #     self._password_hash = password_hash.decode('utf-8')
 
-    # def authenticate(self, password):
-    #     return bcrypt.check_password_hash(
-    #         self._password_hash, password.encode('utf-8')
-    #     )
+    
+
+  
+
 
 
 class Match(db.Model, SerializerMixin):
@@ -219,9 +220,7 @@ class Promotion(db.Model, SerializerMixin):
 
     shows = db.relationship('Show', back_populates = 'promotion')
 
-    # user_promotions = db.relationship('UserPromotion', back_populates = 'promotion')
-    # users = association_proxy('user_promotions', 'user',creator=lambda u: UserPromotion(user = u))
-
+    
     def __repr__(self):
         return f'Promotion {self.id} : {self.name}'
 
@@ -271,43 +270,5 @@ class ProposedMatchWrestler(db.Model, SerializerMixin):
         return f'ProposedMatchWrestler {self.id}'
 
 
-# class UserPromotion(db.Model, SerializerMixin):
-#     __tablename__ = 'user_promotions'
 
-#     serialize_rules = ('-promotion.user_promotions', 
-#                        '-user.user_promotions',
-#                        ) 
-
-#     id = db.Column(db.Integer, primary_key = True)
-#     created_at = db.Column(db.DateTime, server_default=db.func.now())
-#     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
-
-#     promotion_id = db.Column(db.Integer, db.ForeignKey('promotions.id'))
-#     user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
-
-#     promotion = db.relationship('Promotion', back_populates = 'user_promotions')
-#     user = db.relationship('User', back_populates = 'user_promotions')
-
-#     def __repr__(self):
-#         return f'UserPromotion {self.id}'
-
-# class UserShow(db.Model, SerializerMixin):
-#     __tablename__ = 'user_shows'
-
-#     serialize_rules = ('-show.user_shows', 
-#                        '-user.user_shows',
-#                        ) 
-
-#     id = db.Column(db.Integer, primary_key = True)
-#     created_at = db.Column(db.DateTime, server_default=db.func.now())
-#     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
-
-#     show_id = db.Column(db.Integer, db.ForeignKey('shows.id'))
-#     user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
-
-#     show = db.relationship('Show', back_populates = 'user_shows')
-#     user = db.relationship('User', back_populates = 'user_shows')
-
-    def __repr__(self):
-        return f'UserShow {self.id}'
 

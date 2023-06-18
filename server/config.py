@@ -2,7 +2,7 @@
 
 # Remote library imports
 from flask import Flask
-# from flask_bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restful import Api
@@ -13,7 +13,7 @@ from sqlalchemy import MetaData
 
 # Instantiate app, set attributes
 app = Flask(__name__)
-# app.secret_key = "BAD_SECRET_KEY"
+app.secret_key = '39d060b984192f0559c3119fbeb835c0781455f1e7731d48'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
@@ -26,13 +26,16 @@ db = SQLAlchemy(metadata=metadata)
 migrate = Migrate(app, db, )
 db.init_app(app)
 
+# Password handling
+bcrypt = Bcrypt(app)
+
 # Instantiate REST API
 api = Api(app)
 
 # Instantiate CORS
 CORS(app)
 
-# bcrypt = Bcrypt(app)
+
 
 
 # TRIED:
