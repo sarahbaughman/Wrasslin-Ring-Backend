@@ -28,7 +28,7 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, nullable = False)
     regions = db.Column(db.String)
-    weight = db.Column(db.Integer, nullable = False)
+    weight = db.Column(db.Integer)
     phone = db.Column(db.String)
     email = db.Column(db.String, nullable = False)
     instagram = db.Column(db.String)
