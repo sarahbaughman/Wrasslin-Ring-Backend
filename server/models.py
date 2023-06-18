@@ -22,9 +22,7 @@ class User(db.Model, SerializerMixin):
                         '-matches.users', 
                         '-proposed_match_wrestlers.user', 
                         '-proposed_matches.users', 
-                        # '-user_promotions.user',
                         '-promotions.users',
-                        # '-user_shows.user',
                         '-shows.users',
                         )
 
