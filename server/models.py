@@ -8,11 +8,9 @@ from flask_migrate import Migrate
 from sqlalchemy.ext.hybrid import hybrid_property
 from config import db, bcrypt
 
-# bcrypt
+
 
 # Models
-
-
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -37,7 +35,7 @@ class User(db.Model, SerializerMixin):
     payment = db.Column(db.String)
     username = db.Column(db.String, nullable = False)
     _password_hash = db.Column(db.String, nullable = False)
-    # role = db.Column(db.String, default = 'wrestler')
+    role = db.Column(db.String, default = 'wrestler')
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
@@ -196,18 +194,56 @@ class Show(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'Show {self.id} : {self.name}'
+    
+
+
+    @validates('name')
+    def validate_name(self, attrr, name):
+        existing_show = Show.query.filter_by(name=name, promotion_id=self.promotion_id).first()
+        if existing_show is not None and existing_show.id != self.id:
+            abort("Name must exist and be unique within the promotion")
+        return name
+    
+    @validates('venue')
+    def validate_venue(self, attr, venue):
+        if type(venue) is str and len(venue) >= 1 and venue:
+            return venue 
+        else: 
+            abort(422, 'Show must have a venue, venue must be a string greater than 1 character. Please try again.')
+
+    @validates('address')
+    def validate_address(self, attr, address):
+        if type(address) is str and 45 >= len(address) >= 4:
+            return address
+        else: 
+            abort(422, 'Address must be a string between 4 and 45 characters. Please try again.')
+
+    @validates('city')
+    def validate_city(self, attr, city):
+        if type(city) is str and 50 >= len(city) >= 1 :
+            return city
+        else: 
+            abort(422, 'City must be a string between 1 and 50 characters. Please try again.')
+
+
+
+
+
+
+    state 
+    date 
+    where_to_view 
 
 class Promotion(db.Model, SerializerMixin):
     __tablename__ = 'promotions'
 
     serialize_rules = ('-proposed_matches.promotion', 
                        '-shows.promotion', 
-                    #    '-user_promotions.promotion', 
                        '-users.promotions',
                        )
     
     id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String, nullable = False)
+    name = db.Column(db.String, nullable = False, unique = True)
     # promoter = db.Column(db.?) //need to figure this out __________________________
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
@@ -217,10 +253,17 @@ class Promotion(db.Model, SerializerMixin):
     # wrestler history to still be intact 
 
     shows = db.relationship('Show', back_populates = 'promotion')
-
     
     def __repr__(self):
         return f'Promotion {self.id} : {self.name}'
+    
+    @validates('name')
+    def validate_name(self, key, name):
+        existing_promotion = Promotion.query.filter(Promotion.name == name).first()
+        if existing_promotion is not None and existing_promotion.id != self.id:
+            raise ValueError("Name must be unique")
+        return name
+
 
 
 class ProposedMatch(db.Model, SerializerMixin):
@@ -245,14 +288,35 @@ class ProposedMatch(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'ProposedMatch {self.id}'
-
+    
+    @validates('storyline')
+    def validate_storyline(self, attr, storyline):
+        if type(storyline) is str and len(storyline) > 0:
+            return storyline
+        else: 
+            abort(422, 'Storyline must be a string greater than 0 characters, if no storyline write N/A. Please try again.')
+        
+    @validates('type')
+    def validate_type(self, attr, type):
+        if type(type) is str and len(type) > 5:
+            return type
+        else: 
+            abort(422, 'Match type must be a string greater than 5 characters. Please try again.' )
+    
+    @validates('promotion_id')
+    def validate_user_id(self, attr, promotion_id):
+        promotion = Promotion.query.filter(Promotion.id == promotion_id).first()
+        if type(promotion) is int and promotion:
+            return promotion_id
+        else:
+            abort(422, 'Invalid data, promotion does not exist. Please try again.')
 
 class ProposedMatchWrestler(db.Model, SerializerMixin):
     __tablename__ = 'proposed_match_wrestlers'
 
-    serialize_rules = ('-user.proposed_match_wrestlers', 
-                       '-proposed_match.proposed_match_wrestlers',
-                       )
+    serialize_rules =  ('-user.proposed_match_wrestlers', 
+                        '-proposed_match.proposed_match_wrestlers',
+                        )
 
     id = db.Column(db.Integer, primary_key = True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -266,6 +330,25 @@ class ProposedMatchWrestler(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'ProposedMatchWrestler {self.id}'
+    
+    @validates('user_id')
+    def validate_user_id(self, attr, user_id):
+        user = User.query.filter(User.id == user_id).first()
+        if type(user_id) is int and user:
+            return user_id
+        else:
+            abort(422, 'Invalid data, user does not exist. Please try again.')
+        
+    
+    @validates('proposed_match_id')
+    def validate_user_id(self, attr, proposed_match_id):
+        proposed_match = ProposedMatch.query.filter(ProposedMatch.id == proposed_match_id).first()
+        if type(proposed_match_id) is int and proposed_match:
+            return proposed_match
+        else:
+            abort(422, 'Invalid data, proposed match does not exist. Please try again.')
+        
+
 
 
 

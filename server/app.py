@@ -8,8 +8,7 @@ from flask_restful import Api, Resource
 
 # Local imports
 from config import app, db, api
-
-from models import User, Match, MatchWrestler, Show, Promotion, ProposedMatch, ProposedMatchWrestler, UserPromotion, UserShow
+from models import User, Match, MatchWrestler, Show, Promotion, ProposedMatch, ProposedMatchWrestler
 
 # Views go here!
 api = Api(app)
@@ -27,6 +26,65 @@ def check_if_logged_in():
     if (request.endpoint) not in open_access_list and (not session.get('user_id')):
         return {'error': '401 Unauthorized'}, 401
 
+
+class ClearSession(Resource):
+
+    def delete(self):
+    
+        session['user_id'] = None
+
+        return {}, 204
+    
+api.add_resource(ClearSession, '/clear', endpoint='clear')
+
+class Signup(Resource):
+    def post (self):
+
+        username = request.get_json()['username']
+        password = request.get_json()['password']
+
+        if username and password:
+
+            user_input = request.get_json()
+            
+            new_user = User(
+                name = user_input.get('name'),
+                regions = user_input.get('regions'),
+                weight = user_input.get('weight'),
+                phone = user_input.get('phone'),
+                email = user_input.get('email'),
+                instagram = user_input.get('instagram'),
+                payment = user_input.get('payment'),
+                username = username,
+            )
+            new_user.password_hash = password
+            try: 
+                db.session.add(new_user)
+                db.session.commit()
+
+                session['user_id'] = new_user.id
+
+                user_response = {
+                    "id" : new_user.id,
+                    "name" : new_user.name,
+                    "regions" : new_user.regions,
+                    "weight" : new_user.weight,
+                    "phone" : new_user.phone,
+                    "email" : new_user.email,
+                    "instagram" : new_user.instagram,
+                    "payment" : new_user.payment,
+                    "username" : new_user.username,
+                }
+
+                return user_response, 201
+            
+            except: 
+
+                return {'error' : '422 Unprocessable Entity, cannot create account. Please try again.'}, 422
+
+api.add_resource(Signup, '/signup', endpoint='signup')
+
+
 class CheckSession(Resource):
 
     def get(self):
@@ -43,27 +101,28 @@ api.add_resource(CheckSession, '/check_session')
 class Login(Resource):
 
     def post(self):
-        user_input = request.get_json()
-        password = user_input.get('password')
+        username = request.get_json()['username']
+        password = request.get_json()['password']
 
-        user = User.query.filter(User.name.like(f"%{user_input['username']}%")).first()
+        user = User.query.filter(User.name.like(username).first())
         
-        if user and user.authenticate(password):
+        if user:
+            if user.authenticate(password):
             
-            session['user_id'] = user.id
+                session['user_id'] = user.id
 
-            user_response = {
-            "id" : user.id,
-            "name" : user.name,
-            "regions" : user.regions,
-            "weight" : user.weight,
-            "phone" : user.phone,
-            "email" : user.email,
-            "instagram" : user.instagram,
-            "payment" : user.payment,
-            "username" : user.username,
-        }
-            return user_response, 200
+                user_response = {
+                "id" : user.id,
+                "name" : user.name,
+                "regions" : user.regions,
+                "weight" : user.weight,
+                "phone" : user.phone,
+                "email" : user.email,
+                "instagram" : user.instagram,
+                "payment" : user.payment,
+                "username" : user.username,
+                }
+                return user_response, 200
         
         return {'error': ['Username or password invalid. Please try again.']}, 401
     
@@ -78,47 +137,17 @@ class Logout(Resource):
             return {}, 204
         return {'error': '204: 401 Unauthorized'}, 204
 
-api.add_resource(Logout, '/logout')
+api.add_resource(Logout, '/logout', endpoint='logout')
 
-class Users(Resource):
-    def get (self):
-        users = User.query.all()
-        users_dict = [u.to_dict() for u in users]
-        return users_dict, 200
+# class Users(Resource):-
+#     def get (self):
+#         users = User.query.all()
+#         users_dict = [u.to_dict() for u in users]
+#         return users_dict, 200
     
-    def post (self):
-        data = request.get_json()
-        new_user = User(
-            name = data['name'],
-            regions = data['regions'],
-            weight = data['weight'],
-            phone = data['phone'],
-            email = data['email'],
-            instagram = data['instagram'],
-            payment = data['payment'],
-            username = data['username'],
-            password = data['password'],
-        )
-        db.session.add(new_user)
-        db.session.commit()
 
-        session['user_id'] = new_user.id
 
-        user_response = {
-            "id" : new_user.id,
-            "name" : new_user.name,
-            "regions" : new_user.regions,
-            "weight" : new_user.weight,
-            "phone" : new_user.phone,
-            "email" : new_user.email,
-            "instagram" : new_user.instagram,
-            "payment" : new_user.payment,
-            "username" : new_user.username,
-        }
-
-        return user_response, 201
-
-api.add_resource(Users, '/users')
+# api.add_resource(Users, '/users')
 
 class Matches(Resource):
     def get(self):
@@ -176,28 +205,33 @@ api.add_resource(MatchById,'/matches/<int:id>', endpoint = 'matches/<int:id>')
 
 class Shows(Resource):
     def get(self):
+        
         shows = Show.query.all()
         shows_dict = [s.to_dict for s in shows]
 
         return shows_dict, 200
     
+    
     def post(self):
-        user_input = request.get_json()
-        new_show = Show(
-            name = user_input['name'],
-            venue = user_input['venue'],
-            address = user_input['address'],
-            city = user_input['city'],
-            state = user_input['state'],
-            date = user_input['date'],
-            where_to_view = user_input['where_to_view'],
+        if session.get('user_id'):
+            user_input = request.get_json()
+            new_show = Show(
+                name = user_input['name'],
+                venue = user_input['venue'],
+                address = user_input['address'],
+                city = user_input['city'],
+                state = user_input['state'],
+                date = user_input['date'],
+                where_to_view = user_input['where_to_view'],
 
-        )
+            )
 
-        db.session.add(new_show)
-        db.session.commit()
+            db.session.add(new_show)
+            db.session.commit()
 
-        return new_show.to_dict, 201
+            return new_show.to_dict, 201
+        
+        return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
 api.add_resource(Shows,'/shows', endpoint = 'shows')
 
