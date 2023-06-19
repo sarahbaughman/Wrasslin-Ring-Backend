@@ -3,6 +3,7 @@
 # from faker import Faker
 from app import app
 from models import db, User, Match, MatchWrestler, Show, Promotion
+from datetime import date
 
 
 # with app.app_context():
@@ -19,11 +20,13 @@ def create_users():
         phone = '111-111-1111',
         email = 'officialcashflowdojo@gmail.com',
         instagram = '@cashflowkb',
-        image = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSN2SsFzKVz5qvchdqe9CrCEVEXZA7lO8wl8A&usqp=CAU',
+        image = 'https://pbs.twimg.com/media/FwqSxUKWAAIAnCp?format=jpg&name=large',
         username = 'cashflow',
-        _password_hash = 'cashflow',
+        # _password_hash = ,
         role = 'wrestler',
         )
+    
+    cashflow.password_hash = 'cashflow'
     
     encore = User(
         name = 'Encore',
@@ -39,7 +42,7 @@ def create_users():
         )
     
     amazing_red = User(
-        name = 'Encore',
+        name = 'Amazing Red',
         regions = "Northeast, Japan",
         weight = '210',
         phone = '333-333-3333',
@@ -177,42 +180,42 @@ def create_matches():
 def create_match_wrestlers():
     mw1 = MatchWrestler(
         match_id = 1,
-        user_1 = 1
+        user_id = 1
     )
 
     mw2 = MatchWrestler(
         match_id = 1,
-        user_1 = 2
+        user_id = 2
     )
 
     mw3 = MatchWrestler(
         match_id = 2,
-        user_1 = 3
+        user_id = 3
     )
 
     mw4 = MatchWrestler(
         match_id = 2,
-        user_1 = 4
+        user_id = 4
     )
 
     mw5 = MatchWrestler(
         match_id = 2,
-        user_1 = 5
+        user_id = 5
     )
 
     mw6 = MatchWrestler(
         match_id = 2,
-        user_1 = 6
+        user_id = 6
     )
 
     mw7 = MatchWrestler(
         match_id = 3,
-        user_1 = 7
+        user_id = 7
     )
 
     mw8 = MatchWrestler(
         match_id = 3,
-        user_1 = 8
+        user_id = 8
     )
 
 
@@ -227,7 +230,7 @@ def create_shows():
         address = '123 Wrestling St.',
         city = 'New York',
         state = 'NY',
-        date = "2023-09-29",
+        date = date(2023,9,29),
         where_to_view = 'FiteTV',
         promotion_id = 1
     )
@@ -252,14 +255,18 @@ if __name__ == '__main__':
     with app.app_context():
         print("Starting seed...")
 
-        User.query.delete
-        Match.query.delete
-        MatchWrestler.query.delete
-        Show.query.delete
-        Promotion.query.delete
+        print("Clearing tables...")
+        User.query.delete()
+        Match.query.delete()
+        MatchWrestler.query.delete()
+        Show.query.delete()
+        Promotion.query.delete()
 
+        print("Creating new records...")
         create_users()
         create_matches()
         create_match_wrestlers()
         create_shows()
         create_promotions()
+
+        print("Seeding complete!")
