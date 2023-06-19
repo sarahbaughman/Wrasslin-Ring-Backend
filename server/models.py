@@ -15,7 +15,6 @@ from config import db, bcrypt
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    # serializer
     serialize_rules = ('-match_wrestlers.user', 
                         '-matches.users', 
                         '-proposed_match_wrestlers.user', 
@@ -24,14 +23,14 @@ class User(db.Model, SerializerMixin):
                         '-shows.users',
                         )
 
-
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, nullable = False)
     regions = db.Column(db.String)
     weight = db.Column(db.Integer)
     phone = db.Column(db.String)
     email = db.Column(db.String, nullable = False)
-    instagram = db.Column(db.String)
+    image = db.Column(db.String, unique = True)
+    instagram = db.Column(db.String, unique = True)
     payment = db.Column(db.String)
     username = db.Column(db.String, nullable = False)
     _password_hash = db.Column(db.String, nullable = False)
@@ -132,6 +131,7 @@ class Match(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key = True)
     type = db.Column(db.String, nullable = True)
     storyline = db.Column(db.String)
+    accepted = db.Column(db.String, default = False, nullable = False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
@@ -179,7 +179,7 @@ class Show(db.Model, SerializerMixin):
     address = db.Column(db.String)
     city = db.Column(db.String, nullable = False)
     state = db.Column(db.String, nullable = False)
-    date = db.Column(db.DateTime, nullable=True)
+    date = db.Column(db.Date, nullable=True)
     where_to_view = db.Column(db.String)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
@@ -230,9 +230,9 @@ class Show(db.Model, SerializerMixin):
 
 
 
-    state 
-    date 
-    where_to_view 
+    # state 
+    # date 
+    # where_to_view 
 
 class Promotion(db.Model, SerializerMixin):
     __tablename__ = 'promotions'
@@ -244,7 +244,7 @@ class Promotion(db.Model, SerializerMixin):
     
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, nullable = False, unique = True)
-    # promoter = db.Column(db.?) //need to figure this out __________________________
+    # promoter = db.Column(db.?) 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
