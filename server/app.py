@@ -138,25 +138,24 @@ api.add_resource(Login, '/login', endpoint = 'login' )
 
 
 
-# class Logout(Resource):
-#     def delete(self): 
-#         if session.get('user_id'):
-#             session['user_id'] = None
-#             session['role'] = None
-#             return {}, 204
-#         return {'error': '204: 401 Unauthorized'}, 204
+class Logout(Resource):
+    def delete(self): 
+        if session.get('user_id'):
+            session['user_id'] = None
+            session['role'] = None
+            return {}, 204
+        return {'error': '204: 401 Unauthorized'}, 204
 
-# api.add_resource(Logout, '/logout', endpoint='logout')
+api.add_resource(Logout, '/logout', endpoint='logout')
 
-# # class Users(Resource):-
-# #     def get (self):
-# #         users = User.query.all()
-# #         users_dict = [u.to_dict() for u in users]
-# #         return users_dict, 200
-    
+class Users(Resource):
+    def get (self):
+        users = User.query.filter_by(role='wrestler').all()
+        users_dict = [u.to_dict(only = ('id', 'name','regions', 'weight', 'phone', 'email', 'instagram', 'payment', 'username', 'role',)) for u in users]
 
+        return users_dict, 200
 
-# # api.add_resource(Users, '/users')
+api.add_resource(Users, '/users')
 
 class Matches(Resource):
     def get(self):
@@ -199,22 +198,23 @@ class MatchById(Resource):
 
     def patch(self, id):
         
-            match = Match.query.filter(Match.id == id).first()
-        # if session.get('user_id') and session.get('role') == 'promoter':
+        match = Match.query.filter(Match.id == id).first()
+        if session.get('user_id') and session.get('role') == 'promoter':
             if match:
                 for attr in request.get_json():
                     setattr(match, attr, request.get_json()[attr])
                 db.session.add(match)
                 db.session.commit()
-
                 return match.to_dict(only = ('storyline', 'type', 'show.name', 'match_wrestlers.user.name', 'match_wrestlers.user.id')), 200
-#             else:
-#                 return {'error': 'Match not found. Please try again.'}, 404
-#         return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+            
+            else:
+                return {'error': 'Match not found. Please try again.'}, 404
+            
+        return {'error': '401 User not authorized to view this content. Please try again.'}, 401
     
     def delete(self,id):
-            match = Match.query.filter(Match.id == id).first()
-        # if session.get('user_id') and session.get('role') == 'promoter':
+        match = Match.query.filter(Match.id == id).first()
+        if session.get('user_id') and session.get('role') == 'promoter':
             if match:
                 db.session.delete(match)
                 db.session.commit()
@@ -222,7 +222,8 @@ class MatchById(Resource):
             
             else:
                 return {'error': 'Match not found. Please try again.'}, 404
-        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+            
+        return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
 api.add_resource(MatchById,'/matches/<int:id>', endpoint = 'matches/<int:id>')
 
@@ -237,7 +238,7 @@ class Shows(Resource):
     
     
     def post(self):
-        # if session.get('user_id') and session.get('role') == 'promoter':
+        if session.get('user_id') and session.get('role') == 'promoter':
             user_input = request.get_json()
             date_str = user_input['date']
 
@@ -258,7 +259,7 @@ class Shows(Resource):
 
             return new_show.to_dict(), 201
         
-#         return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+        return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
 api.add_resource(Shows,'/shows', endpoint = 'shows')
 
@@ -272,9 +273,9 @@ class ShowById(Resource):
     
     
     def patch(self, id):
-            show = Show.query.filter(Show.id == id).first()
+        show = Show.query.filter(Show.id == id).first()
     
-        # if session.get('user_id') and session.get('role') == 'promoter':
+        if session.get('user_id') and session.get('role') == 'promoter':
             if show:
                 user_input = request.get_json()
                 date_str = user_input.get('date')
@@ -290,14 +291,15 @@ class ShowById(Resource):
                 db.session.commit()
 
                 return show.to_dict(only=('id', 'name', 'venue', 'address', 'city', 'state', 'date', 'where_to_view',)), 200
+           
             else:
                 return {'error': 'Show not found. Please try again.'}, 404
-#         else: 
-#             return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
+        else: 
+            return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
     
     def delete(self,id):
-            show = Show.query.filter(Show.id == id).first()
-        # if session.get('user_id') and session.get('role') == 'promoter':
+        show = Show.query.filter(Show.id == id).first()
+        if session.get('user_id') and session.get('role') == 'promoter':
             if show:
                 db.session.delete(show)
                 db.session.commit()
@@ -305,8 +307,8 @@ class ShowById(Resource):
             
             else:
                 return {'error': 'Show not found. Please try again.'}, 404
-#         else: 
-#             return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
+        else: 
+            return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
 
 api.add_resource(ShowById,'/shows/<int:id>', endpoint = 'shows/<int:id>')
 
