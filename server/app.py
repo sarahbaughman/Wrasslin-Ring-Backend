@@ -58,7 +58,8 @@ class Signup(Resource):
                 instagram = user_input.get('instagram'),
                 payment = user_input.get('payment'),
                 role = user_input.get('role'),
-                username = username,
+                image = user_input.get('image'),
+                username = user_input.get('username')
             )
             new_user.password_hash = password
             try: 
@@ -79,6 +80,7 @@ class Signup(Resource):
                     "payment" : new_user.payment,
                     "username" : new_user.username,
                     'role' : new_user.role,
+                    'image' : new_user.image
                 }
 
                 return user_response, 201
@@ -129,6 +131,7 @@ class Login(Resource):
                 "payment" : user.payment,
                 "username" : user.username,
                 "role" : user.role,
+                "image" : user.image,
                 }
                 return user_response, 200
         
@@ -151,7 +154,7 @@ api.add_resource(Logout, '/logout', endpoint='logout')
 class Users(Resource):
     def get (self):
         users = User.query.filter_by(role='wrestler').all()
-        users_dict = [u.to_dict(only = ('id', 'name','regions', 'weight', 'phone', 'email', 'instagram', 'payment', 'username', 'role',)) for u in users]
+        users_dict = [u.to_dict(only = ('id', 'name','regions', 'weight', 'phone', 'email', 'instagram', 'payment', 'username', 'role', 'image')) for u in users]
 
         return users_dict, 200
 
@@ -165,7 +168,7 @@ class Matches(Resource):
         return matches_dict, 200
     
     def post(self):
-        if session.get('user_id') and session.get('role') == 'promoter':
+        # if session.get('user_id') and session.get('role') == 'promoter':
             user_input = request.get_json()
             new_match = Match(
                 type = user_input['type'],
@@ -184,7 +187,7 @@ class Matches(Resource):
 
             return new_match_response, 201
         
-        return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
 api.add_resource(Matches,'/matches', endpoint = 'matches')
 
@@ -238,7 +241,7 @@ class Shows(Resource):
     
     
     def post(self):
-        if session.get('user_id') and session.get('role') == 'promoter':
+        # if session.get('user_id') and session.get('role') == 'promoter':
             user_input = request.get_json()
             date_str = user_input['date']
 
@@ -259,7 +262,7 @@ class Shows(Resource):
 
             return new_show.to_dict(), 201
         
-        return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
 api.add_resource(Shows,'/shows', endpoint = 'shows')
 

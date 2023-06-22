@@ -1,8 +1,8 @@
-"""another one
+"""initial
 
-Revision ID: 88279c3924fd
+Revision ID: f70247e8b3e8
 Revises: 
-Create Date: 2023-06-19 15:58:12.536457
+Create Date: 2023-06-21 18:15:49.539660
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '88279c3924fd'
+revision = 'f70247e8b3e8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -37,7 +37,7 @@ def upgrade():
     sa.Column('instagram', sa.String(), nullable=True),
     sa.Column('payment', sa.String(), nullable=True),
     sa.Column('username', sa.String(), nullable=False),
-    sa.Column('_password_hash', sa.String(), nullable=False),
+    sa.Column('_password_hash', sa.String(), nullable=True),
     sa.Column('role', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -72,7 +72,6 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('type', sa.String(), nullable=True),
     sa.Column('storyline', sa.String(), nullable=True),
-    sa.Column('accepted', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('show_id', sa.Integer(), nullable=True),

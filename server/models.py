@@ -128,11 +128,11 @@ class Match(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key = True)
     type = db.Column(db.String, nullable = True)
     storyline = db.Column(db.String)
-    accepted = db.Column(db.String, default = False, nullable = False)
+       # accepted = db.Column(db.String, default = False, nullable = False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    show_id = db.Column(db.Integer, db.ForeignKey('shows.id'))
+    show_id = db.Column(db.Integer, db.ForeignKey('shows.id'), nullable = True)
     show = db.relationship('Show', back_populates = 'matches')
 
     match_wrestlers = db.relationship('MatchWrestler', back_populates = 'match')

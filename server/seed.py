@@ -148,7 +148,7 @@ def create_users():
         phone = '101-101-1010',
         email = 'evanderjames@gmail.com',
         instagram = '@evanderjames',
-        image = 'https://static.wikia.nocookie.net/prowrestling/images/c/ce/Evander_James_-_14045564.jpg/revision/latest?cb=20190326021403',
+        image = 'https://static.wikia.nocookie.net/prowrestling/images/4/49/Evander_James_-_0443c4.jpg/revision/latest/scale-to-width-down/250?cb=20190326021441',
         username = 'evanderjames',
         # _password_hash = 'evanderjames',
         role = 'wrestler',
@@ -165,21 +165,21 @@ def create_matches():
     match1 = Match(
         type = "One on one",
         storyline = "Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. ",
-        accepted = True,
+        # accepted = True,
         show_id = 1
     )
 
     match2 = Match(
         type = "Tag team",
         storyline = "Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. ",
-        accepted = True,
+        # accepted = True,
         show_id = 1
     )
 
     match3 = Match(
         type = "One on one",
         storyline = "Match3 Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. Dudes face off, one wins. ",
-        accepted = True,
+        # accepted = True,
         show_id = 1
     )
 
