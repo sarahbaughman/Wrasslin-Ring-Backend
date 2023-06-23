@@ -97,7 +97,20 @@ class CheckSession(Resource):
     def get(self):
         if session.get('user_id'):
             user = User.query.filter(User.id == session.get('user_id')).first()
-            return user.to_dict(), 200
+            user_response = {
+                    "id" : user.id,
+                    "name" : user.name,
+                    "regions" : user.regions,
+                    "weight" : user.weight,
+                    "phone" : user.phone,
+                    "email" : user.email,
+                    "instagram" : user.instagram,
+                    "payment" : user.payment,
+                    "username" : user.username,
+                    'role' : user.role,
+                    'image' : user.image
+                }
+            return user_response, 200
 
         return {'error': '401: Not Authorized'}, 401
         
@@ -160,42 +173,44 @@ class Users(Resource):
 
 api.add_resource(Users, '/users')
 
-class Matches(Resource):
-    def get(self):
-        matches = Match.query.all()
-        matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'match_wrestlers.user.name', 'match_wrestlers.user.id')) for m in matches]
+# class Matches(Resource):
+#     def get(self):
+#         matches = Match.query.all()
+#         matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
 
-        return matches_dict, 200
+#         return matches_dict, 200
+
     
-    def post(self):
-        # if session.get('user_id') and session.get('role') == 'promoter':
-            user_input = request.get_json()
-            new_match = Match(
-                type = user_input['type'],
-                storyline = user_input['storyline'],
-                show_id = user_input['show_id'],
-            )
+#     def post(self):
+#         # if session.get('user_id') and session.get('role') == 'promoter':
+#             user_input = request.get_json()
+#             new_match = Match(
+#                 type = user_input['type'],
+#                 storyline = user_input['storyline'],
+#                 show_id = user_input['show_id'],
+#             )
             
-            db.session.add(new_match)
-            db.session.commit()
+#             db.session.add(new_match)
+#             db.session.commit()
 
-            new_match_response = {
-                    "type" : new_match.type,
-                    "storyline" : new_match.storyline,
-                    "show_id" : new_match.show_id,
-            }
+#             new_match_response = {
+#                     "type" : new_match.type,
+#                     "storyline" : new_match.storyline,
+#                     "show_id" : new_match.show_id,
+#                     "id" : new_match.id,
+#             }
 
-            return new_match_response, 201
+#             return new_match_response, 201
         
-        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+#         # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
-api.add_resource(Matches,'/matches', endpoint = 'matches')
+# api.add_resource(Matches,'/matches', endpoint = 'matches')
 
 class MatchById(Resource):
     def get(self, id):
         match = Match.query.filter(Match.id == id).first()
         if match:
-            return match.to_dict(only = ('storyline', 'type', 'show.name', 'match_wrestlers.user.name', 'match_wrestlers.user.id')), 200
+            return match.to_dict(only = ('id','storyline', 'type', 'show.name', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)), 200
         else:
             return {'error': 'Match not found. Please try again.'}, 404
 
@@ -235,7 +250,7 @@ class Shows(Resource):
     def get(self):
         
         shows = Show.query.all()
-        shows_dict = [s.to_dict(only=('id', 'name', 'venue', 'address', 'city', 'state', 'date', 'where_to_view',)) for s in shows]
+        shows_dict = [s.to_dict(only=('id', 'name', 'venue', 'address', 'city', 'state', 'date', 'where_to_view', 'created_by_user_id')) for s in shows]
 
         return shows_dict, 200
     
@@ -255,6 +270,7 @@ class Shows(Resource):
                 state = user_input['state'],
                 date = date_object,
                 where_to_view = user_input['where_to_view'],
+                created_by_user_id = user_input['created_by_user_id']
             )
 
             db.session.add(new_show)
@@ -293,7 +309,7 @@ class ShowById(Resource):
                 db.session.add(show)
                 db.session.commit()
 
-                return show.to_dict(only=('id', 'name', 'venue', 'address', 'city', 'state', 'date', 'where_to_view',)), 200
+                return show.to_dict(only=('id', 'name', 'venue', 'address', 'city', 'state', 'date', 'where_to_view', 'created_by_user_id',)), 200
            
             else:
                 return {'error': 'Show not found. Please try again.'}, 404
@@ -378,6 +394,71 @@ class PromotionById(Resource):
 api.add_resource(PromotionById,'/promotions/<int:id>', endpoint = '/promotions/<int:id>')
 
 
+class MatchWrestlers(Resource):
+    def get(self):
+        match_wrestlers = MatchWrestler.query.all()
+        mw_dict = [mw.to_dict(only = ('user.name', 'match.id',)) for mw in match_wrestlers] 
+
+        return mw_dict, 200
+    
+    def post(self):
+        user_input = request.get_json()
+        new_mw = MatchWrestler(
+            user_id = user_input['user_id'],
+            match_id = user_input['match_id']
+        )
+        db.session.add(new_mw)
+        db.session.commit()
+
+        return new_mw.to_dict(only = ('user.name', 'match.id',)), 201
+
+
+api.add_resource(MatchWrestlers,'/matchwrestlers', endpoint = '/matchwrestlers')
+
+class Matches(Resource):
+    def get(self):
+        matches = Match.query.all()
+        matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
+
+        return matches_dict, 200
+
+    
+    def post(self):
+        # if session.get('user_id') and session.get('role') == 'promoter':
+            
+            user_input = request.get_json()
+            
+            new_match = Match(
+                type = user_input['type'],
+                storyline = user_input['storyline'],
+                show_id = user_input['show_id'],
+            )
+            
+            db.session.add(new_match)
+            db.session.commit()
+
+            for wrestler in request.get_json():
+                new_mw = MatchWrestler(
+                    user_id = wrestler['user_id'],
+                    match_id = new_match.id
+                    )
+
+            db.session.add(new_mw)
+            db.session.commit()
+
+            # new_match_response = {
+            #         "type" : new_match.type,
+            #         "storyline" : new_match.storyline,
+            #         "show_id" : new_match.show_id,
+            #         "id" : new_match.id,
+            # }
+
+            return  new_match.to_dict(only = ('type', 'storyline', 'show_id', 'id', 'match_wrestlers.id', 'match_wrestlers.user.name', 'match_wrestlers.user_id','match_wrestlers.match_id')), 201
+        
+        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+
+api.add_resource(Matches,'/matches', endpoint = 'matches')
+
 # class ProposedMatches(Resource):
 #     def get(self):
 #         proposed_matches = ProposedMatch.query.all()
@@ -437,7 +518,18 @@ api.add_resource(PromotionById,'/promotions/<int:id>', endpoint = '/promotions/<
 
 # api.add_resource(ProposedMatchById, '/proposedmatches/<int:id>', endpoint = '/proposedmatches/<int:id>')
 
+class MyShows(Resource):
+    def get(self):
+        if session.get('user_id') and session.get('role') == 'wrestler':
+            user_id = session['user_id']
+        my_matches = Show.query.join(Match).join(MatchWrestler).filter(MatchWrestler.user_id == user_id).all()
 
+        my_matches_dict = [mm.to_dict() for mm in my_matches]
+
+        return my_matches_dict, 200
+
+
+api.add_resource(MyShows,'/myshows', endpoint = '/myshows')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

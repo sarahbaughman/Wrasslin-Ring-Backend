@@ -177,6 +177,7 @@ class Show(db.Model, SerializerMixin):
     state = db.Column(db.String, nullable = False)
     date = db.Column(db.Date, nullable=True)
     where_to_view = db.Column(db.String)
+    created_by_user_id = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 

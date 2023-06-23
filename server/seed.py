@@ -155,7 +155,21 @@ def create_users():
         )
     evander.password_hash = 'evander'
 
-    users = [cashflow, encore, amazing_red, violette, charlesmason, jay_lyon, midas_black, sweet_cheeks,loki, evander ]
+    sarah = User(
+        name = 'Sarah Baughman',
+        regions = "New York",
+        weight = "",
+        phone = '314-707-1344',
+        email = 'sarahbaughman92@gmail.com',
+        instagram = '',
+        image = '',
+        username = 'SarahBaughman',
+        # _password_hash = 'evanderjames',
+        role = 'promotor',
+        )
+    sarah.password_hash = '!Valentine1'
+
+    users = [cashflow, encore, amazing_red, violette, charlesmason, jay_lyon, midas_black, sweet_cheeks,loki, evander, sarah ]
     db.session.add_all(users)
     db.session.commit()
     
@@ -242,7 +256,8 @@ def create_shows():
         state = 'NY',
         date = date(2023,9,29),
         where_to_view = 'FiteTV',
-        promotion_id = 1
+        promotion_id = 1,
+        created_by_user_id = 11
     )
 
     shows = [ s1 ]
