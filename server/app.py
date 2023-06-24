@@ -518,6 +518,7 @@ api.add_resource(Matches,'/matches', endpoint = 'matches')
 
 # api.add_resource(ProposedMatchById, '/proposedmatches/<int:id>', endpoint = '/proposedmatches/<int:id>')
 
+
 class MyShows(Resource):
     def get(self):
         if session.get('user_id') and session.get('role') == 'wrestler':
