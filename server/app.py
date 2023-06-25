@@ -173,38 +173,38 @@ class Users(Resource):
 
 api.add_resource(Users, '/users')
 
-# class Matches(Resource):
-#     def get(self):
-#         matches = Match.query.all()
-#         matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
+class Matches(Resource):
+    def get(self):
+        matches = Match.query.all()
+        matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
 
-#         return matches_dict, 200
+        return matches_dict, 200
 
     
-#     def post(self):
-#         # if session.get('user_id') and session.get('role') == 'promoter':
-#             user_input = request.get_json()
-#             new_match = Match(
-#                 type = user_input['type'],
-#                 storyline = user_input['storyline'],
-#                 show_id = user_input['show_id'],
-#             )
+    def post(self):
+        # if session.get('user_id') and session.get('role') == 'promoter':
+            user_input = request.get_json()
+            new_match = Match(
+                type = user_input['type'],
+                storyline = user_input['storyline'],
+                show_id = user_input['show_id'],
+            )
             
-#             db.session.add(new_match)
-#             db.session.commit()
+            db.session.add(new_match)
+            db.session.commit()
 
-#             new_match_response = {
-#                     "type" : new_match.type,
-#                     "storyline" : new_match.storyline,
-#                     "show_id" : new_match.show_id,
-#                     "id" : new_match.id,
-#             }
+            new_match_response = {
+                    "type" : new_match.type,
+                    "storyline" : new_match.storyline,
+                    "show_id" : new_match.show_id,
+                    "id" : new_match.id,
+            }
 
-#             return new_match_response, 201
+            return new_match_response, 201
         
-#         # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
-# api.add_resource(Matches,'/matches', endpoint = 'matches')
+api.add_resource(Matches,'/matches', endpoint = 'matches')
 
 class MatchById(Resource):
     def get(self, id):
@@ -415,49 +415,49 @@ class MatchWrestlers(Resource):
 
 api.add_resource(MatchWrestlers,'/matchwrestlers', endpoint = '/matchwrestlers')
 
-class Matches(Resource):
-    def get(self):
-        matches = Match.query.all()
-        matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
+# class Matches(Resource):
+#     def get(self):
+#         matches = Match.query.all()
+#         matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
 
-        return matches_dict, 200
+#         return matches_dict, 200
 
     
-    def post(self):
-        # if session.get('user_id') and session.get('role') == 'promoter':
+#     def post(self):
+#         # if session.get('user_id') and session.get('role') == 'promoter':
             
-            user_input = request.get_json()
+#             user_input = request.get_json()
             
-            new_match = Match(
-                type = user_input['type'],
-                storyline = user_input['storyline'],
-                show_id = user_input['show_id'],
-            )
+#             new_match = Match(
+#                 type = user_input['type'],
+#                 storyline = user_input['storyline'],
+#                 show_id = user_input['show_id'],
+#             )
             
-            db.session.add(new_match)
-            db.session.commit()
+#             db.session.add(new_match)
+#             db.session.commit()
 
-            for wrestler in request.get_json():
-                new_mw = MatchWrestler(
-                    user_id = wrestler['user_id'],
-                    match_id = new_match.id
-                    )
+#             for wrestler in request.get_json():
+#                 new_mw = MatchWrestler(
+#                     user_id = wrestler['user_id'],
+#                     match_id = new_match.id
+#                     )
 
-            db.session.add(new_mw)
-            db.session.commit()
+#             db.session.add(new_mw)
+#             db.session.commit()
 
-            # new_match_response = {
-            #         "type" : new_match.type,
-            #         "storyline" : new_match.storyline,
-            #         "show_id" : new_match.show_id,
-            #         "id" : new_match.id,
-            # }
+#             # new_match_response = {
+#             #         "type" : new_match.type,
+#             #         "storyline" : new_match.storyline,
+#             #         "show_id" : new_match.show_id,
+#             #         "id" : new_match.id,
+#             # }
 
-            return  new_match.to_dict(only = ('type', 'storyline', 'show_id', 'id', 'match_wrestlers.id', 'match_wrestlers.user.name', 'match_wrestlers.user_id','match_wrestlers.match_id')), 201
+#             return  new_match.to_dict(only = ('type', 'storyline', 'show_id', 'id', 'match_wrestlers.id', 'match_wrestlers.user.name', 'match_wrestlers.user_id','match_wrestlers.match_id')), 201
         
-        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+#         # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
-api.add_resource(Matches,'/matches', endpoint = 'matches')
+# api.add_resource(Matches,'/matches', endpoint = 'matches')
 
 # class ProposedMatches(Resource):
 #     def get(self):
@@ -519,18 +519,78 @@ api.add_resource(Matches,'/matches', endpoint = 'matches')
 # api.add_resource(ProposedMatchById, '/proposedmatches/<int:id>', endpoint = '/proposedmatches/<int:id>')
 
 
-class MyShows(Resource):
-    def get(self):
-        if session.get('user_id') and session.get('role') == 'wrestler':
-            user_id = session['user_id']
-        my_matches = Show.query.join(Match).join(MatchWrestler).filter(MatchWrestler.user_id == user_id).all()
+# class MyShows(Resource):
+#     def get(self):
+#         if session.get('user_id') and session.get('role') == 'wrestler':
+#             user_id = session['user_id']
+#         my_matches = Show.query.join(Match).join(MatchWrestler).filter(MatchWrestler.user_id == user_id).all()
 
-        my_matches_dict = [mm.to_dict() for mm in my_matches]
+#         my_matches_dict = [mm.to_dict() for mm in my_matches]
+
+#         return my_matches_dict, 200
+
+
+# api.add_resource(MyShows,'/myshows', endpoint = '/myshows')
+
+class PropMatches(Resource):
+    def get(self):
+        matches = ProposedMatch.query.all()
+        matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
+
+        return matches_dict, 200
+
+    
+    def post(self):
+        # if session.get('user_id') and session.get('role') == 'promoter':
+            
+            user_input = request.get_json()
+            match = user_input['match']
+            
+            new_match = ProposedMatch(
+                type = match['type'],
+                storyline = match['storyline'],
+                submitted_user_id = match['submitted_user_id'],
+            )
+            
+            db.session.add(new_match)
+            db.session.commit()
+
+            wrestlers = user_input['wrestlers']
+
+            for wrestler in wrestlers:
+                new_mw = ProposedMatchWrestler(
+                    user_id=wrestler['user_id'],
+                    proposed_match_id=new_match.id
+                )
+                db.session.add(new_mw)
+                db.session.commit()
+                
+
+
+            # new_match_response = {
+            #         "type" : new_match.type,
+            #         "storyline" : new_match.storyline,
+            #         "show_id" : new_match.show_id,
+            #         "id" : new_match.id,
+            # }
+
+            return  new_match.to_dict(only = ('storyline', 'type','id', 'proposed_match_wrestlers.user.name', 'proposed_match_wrestlers.user.id',)), 201
+        
+        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+
+api.add_resource(PropMatches,'/proposedmatches', endpoint = '/proposedmatches')
+
+class PropMatchesByUserId(Resource):
+    def get(self):
+        if session.get('user_id'):
+            user_id = session['user_id']
+        my_matches = ProposedMatch.query.filter(ProposedMatch.submitted_user_id == user_id)
+        my_matches_dict = [m.to_dict(only = ('storyline', 'type','id', 'proposed_match_wrestlers.user.name', 'proposed_match_wrestlers.user.id',)) for m in my_matches]
 
         return my_matches_dict, 200
 
+api.add_resource(PropMatchesByUserId,'/proposedmatchesbyuserid', endpoint = '/proposedmatchesbyuserid')
 
-api.add_resource(MyShows,'/myshows', endpoint = '/myshows')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

@@ -269,6 +269,7 @@ class ProposedMatch(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key = True)
     storyline = db.Column(db.String)
     type = db.Column(db.String, nullable = False)
+    submitted_user_id = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
     

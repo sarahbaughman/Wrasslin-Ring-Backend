@@ -1,8 +1,8 @@
-"""added created by to show model, edited seed
+"""init
 
-Revision ID: 052cc5dd1586
+Revision ID: f68beb6ef2ac
 Revises: 
-Create Date: 2023-06-22 12:00:27.993619
+Create Date: 2023-06-24 20:04:59.812297
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '052cc5dd1586'
+revision = 'f68beb6ef2ac'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -47,6 +47,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('storyline', sa.String(), nullable=True),
     sa.Column('type', sa.String(), nullable=False),
+    sa.Column('submitted_user_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('promotion_id', sa.Integer(), nullable=True),
