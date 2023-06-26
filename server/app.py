@@ -5,8 +5,9 @@
 # Remote library imports
 from flask import request, make_response, session
 from flask_restful import Api, Resource
-import datetime
+from datetime import datetime
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 
 # Local imports
 from config import app, db, api
@@ -310,7 +311,7 @@ class ShowById(Resource):
                 db.session.commit()
 
                 return show.to_dict(only=('id', 'name', 'venue', 'address', 'city', 'state', 'date', 'where_to_view', 'created_by_user_id',)), 200
-           
+    
             else:
                 return {'error': 'Show not found. Please try again.'}, 404
         else: 
@@ -483,15 +484,15 @@ api.add_resource(MatchWrestlers,'/matchwrestlers', endpoint = '/matchwrestlers')
 # api.add_resource(ProposedMatches, '/proposedmatches', endpoint = '/proposedmatches')
 
 
-# class ProposedMatchById(Resource):
-#     def get(self, id):
-#         proposed_match = ProposedMatch.query.filter(ProposedMatch.id == id).first()
+class ProposedMatchById(Resource):
+    def get(self, id):
+        proposed_match = ProposedMatch.query.filter(ProposedMatch.id == id).first()
         
-#         if proposed_match:
-#             return proposed_match, 200
+        if proposed_match:
+            return proposed_match, 200
         
-#         else:
-#             return {'error': 'Proposed match not found. Please try again.'}, 404
+        else:
+            return {'error': 'Proposed match not found. Please try again.'}, 404
     
 #     def patch(self, id):
 #         proposed_match = ProposedMatch.query.filter(ProposedMatch.id == id).first()
@@ -506,36 +507,52 @@ api.add_resource(MatchWrestlers,'/matchwrestlers', endpoint = '/matchwrestlers')
 #         else:
 #             return {'error': 'Proposed match not found. Please try again.'}, 404
     
-#     def delete(self,id):
-#         proposed_match = ProposedMatch.query.filter(ProposedMatch.id == id).first()
-#         if proposed_match:
-#             db.session.delete(proposed_match)
-#             db.session.commit()
-#             return {}, 204
+    def delete(self,id):
+        proposed_match = ProposedMatch.query.filter(ProposedMatch.id == id).first()
+        if proposed_match:
+            db.session.delete(proposed_match)
+            db.session.commit()
+            return {}, 204
         
-#         else:
-#             return {'error': 'Proposed match not found. Please try again.'}, 404
+        else:
+            return {'error': 'Proposed match not found. Please try again.'}, 404
 
-# api.add_resource(ProposedMatchById, '/proposedmatches/<int:id>', endpoint = '/proposedmatches/<int:id>')
+api.add_resource(ProposedMatchById, '/propmatches/<int:id>', endpoint = '/propmatches/<int:id>')
+
+class PromotorPastShows(Resource):
+    def get(self):
+        if session.get('user_id'):
+            user_id = session['user_id']
+            current_date = datetime.now().date()
+            my_shows = Show.query.filter_by(created_by_user_id=user_id).options(
+                joinedload(Show.matches).joinedload(Match.match_wrestlers)
+            ).filter(Show.date < current_date).all()
+
+            my_shows_dict = [show.to_dict(only = ('id',
+                                                'name', 
+                                                'venue', 
+                                                'address', 
+                                                'date', 
+                                                'city', 
+                                                'state', 
+                                                'date',
+                                                'where_to_view',
+                                                'matches.type',
+                                                'matches.storyline',
+                                                'matches.match_wrestlers.user.name',)) for show in my_shows]
+
+            return my_shows_dict, 200
+
+        else:
+            return "User not logged in or not a promotor.", 401
 
 
-# class MyShows(Resource):
-#     def get(self):
-#         if session.get('user_id') and session.get('role') == 'wrestler':
-#             user_id = session['user_id']
-#         my_matches = Show.query.join(Match).join(MatchWrestler).filter(MatchWrestler.user_id == user_id).all()
-
-#         my_matches_dict = [mm.to_dict() for mm in my_matches]
-
-#         return my_matches_dict, 200
-
-
-# api.add_resource(MyShows,'/myshows', endpoint = '/myshows')
+api.add_resource(PromotorPastShows, '/promotorpastshows', endpoint='/promotorpastshows')
 
 class PropMatches(Resource):
     def get(self):
         matches = ProposedMatch.query.all()
-        matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
+        matches_dict = [m.to_dict(only = ('storyline', 'type', 'proposed_match_wrestlers.user.name', 'proposed_match_wrestlers.user.id', 'submitted_user_name', 'submitted_user_id')) for m in matches]
 
         return matches_dict, 200
 
@@ -550,6 +567,7 @@ class PropMatches(Resource):
                 type = match['type'],
                 storyline = match['storyline'],
                 submitted_user_id = match['submitted_user_id'],
+                submitted_user_name = match['submitted_user_name'],
             )
             
             db.session.add(new_match)
@@ -591,6 +609,34 @@ class PropMatchesByUserId(Resource):
 
 api.add_resource(PropMatchesByUserId,'/proposedmatchesbyuserid', endpoint = '/proposedmatchesbyuserid')
 
+class PastMatchesByUserId(Resource):
+    def get(self):
+        if session.get('user_id'):
+            user_id = session['user_id']
+            current_date = datetime.now().date()
+            my_matches = Match.query.join(Match.match_wrestlers).join(Match.show).filter(MatchWrestler.user_id == user_id, Show.date < current_date).all()
+            my_matches_dict = [m.to_dict(only=('storyline', 'type', 'show.name', 'show.date', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in my_matches]
+            return my_matches_dict, 200
+        else:
+            return "User not logged in", 401
+
+api.add_resource(PastMatchesByUserId, '/pastmatchesbyuserid', endpoint='/pastmatchesbyuserid')
+
+
+class UpcomingMatchesByUserId(Resource):
+    def get(self):
+        if session.get('user_id'):
+            user_id = session['user_id']
+            current_date = datetime.now().date()
+            my_matches = Match.query.join(Match.match_wrestlers).join(Match.show).filter(MatchWrestler.user_id == user_id, Show.date > current_date).all()
+            my_matches_dict = [m.to_dict(only=('storyline', 'type', 'show.name', 'show.date', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in my_matches]
+            return my_matches_dict, 200
+        else:
+            return "User not logged in", 401
+
+api.add_resource(UpcomingMatchesByUserId, '/upcomingmatchesbyuserid', endpoint='/upcomingmatchesbyuserid')
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
+ 

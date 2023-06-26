@@ -190,7 +190,7 @@ class Show(db.Model, SerializerMixin):
         return f'Show {self.id} : {self.name}'
     
     # @validates('name')
-    # def validate_name(self, attrr, name):
+    # def validate_name(self, attr, name):
     #     existing_show = Show.query.filter_by(name=name, promotion_id=self.promotion_id).first()
     #     if existing_show is not None and existing_show.id != self.id:
     #         abort("Name must exist and be unique within the promotion")
@@ -270,6 +270,7 @@ class ProposedMatch(db.Model, SerializerMixin):
     storyline = db.Column(db.String)
     type = db.Column(db.String, nullable = False)
     submitted_user_id = db.Column(db.Integer)
+    submitted_user_name = db.Column(db.String)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
     

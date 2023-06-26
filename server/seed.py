@@ -153,7 +153,7 @@ def create_users():
         # _password_hash = 'evanderjames',
         role = 'wrestler',
         )
-    evander.password_hash = 'evander'
+    evander.password_hash = 'evanderjames'
 
     sarah = User(
         name = 'Sarah Baughman',
@@ -272,8 +272,6 @@ def create_promotions():
     promotions = [ p1 ]
     db.session.add_all(promotions)
     db.session.commit()
-    
-
 
 if __name__ == '__main__':
 
