@@ -6,6 +6,7 @@
 from flask import request, make_response, session
 from flask_restful import Api, Resource
 from datetime import datetime
+# import datetime
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
@@ -184,24 +185,51 @@ class Matches(Resource):
     
     def post(self):
         # if session.get('user_id') and session.get('role') == 'promoter':
+
             user_input = request.get_json()
+            match = user_input['match']
+            
             new_match = Match(
-                type = user_input['type'],
-                storyline = user_input['storyline'],
-                show_id = user_input['show_id'],
+                type = match['type'],
+                storyline = match['storyline'],
+                show_id = match['show_id']
             )
             
             db.session.add(new_match)
             db.session.commit()
 
-            new_match_response = {
-                    "type" : new_match.type,
-                    "storyline" : new_match.storyline,
-                    "show_id" : new_match.show_id,
-                    "id" : new_match.id,
-            }
+            wrestlers = user_input['wrestlers']
 
-            return new_match_response, 201
+            for wrestler in wrestlers:
+                new_mw = MatchWrestler(
+                    user_id = wrestler['user_id'],
+                    match_id= new_match.id
+                )
+                db.session.add(new_mw)
+                db.session.commit()
+        
+            return  new_match.to_dict(only = ('storyline', 'type','id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)), 201
+        
+                
+
+            # user_input = request.get_json()
+            # new_match = Match(
+            #     type = user_input['type'],
+            #     storyline = user_input['storyline'],
+            #     show_id = user_input['show_id'],
+            # )
+            
+            # db.session.add(new_match)
+            # db.session.commit()
+
+            # new_match_response = {
+            #         "type" : new_match.type,
+            #         "storyline" : new_match.storyline,
+            #         "show_id" : new_match.show_id,
+            #         "id" : new_match.id,
+            # }
+
+            # return new_match_response, 201
         
         # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
@@ -256,28 +284,51 @@ class Shows(Resource):
         return shows_dict, 200
     
     
+    # def post(self):
+    #     # if session.get('user_id') and session.get('role') == 'promoter':
+    #         user_input = request.get_json()
+    #         date_str = user_input['date']
+
+    #         date_object = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+
+    #         new_show = Show(
+    #             name = user_input['name'],
+    #             venue = user_input['venue'],
+    #             address = user_input['address'],
+    #             city = user_input['city'],
+    #             state = user_input['state'],
+    #             date = date_object,
+    #             where_to_view = user_input['where_to_view'],
+    #             created_by_user_id = user_input['created_by_user_id']
+    #         )
+
+    #         db.session.add(new_show)
+    #         db.session.commit()
+
+    #         return new_show.to_dict(), 201
+
     def post(self):
         # if session.get('user_id') and session.get('role') == 'promoter':
-            user_input = request.get_json()
-            date_str = user_input['date']
+        user_input = request.get_json()
+        date_str = user_input['date']
 
-            date_object = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        date_object = datetime.strptime(date_str, "%Y-%m-%d").date()
 
-            new_show = Show(
-                name = user_input['name'],
-                venue = user_input['venue'],
-                address = user_input['address'],
-                city = user_input['city'],
-                state = user_input['state'],
-                date = date_object,
-                where_to_view = user_input['where_to_view'],
-                created_by_user_id = user_input['created_by_user_id']
-            )
+        new_show = Show(
+            name=user_input['name'],
+            venue=user_input['venue'],
+            address=user_input['address'],
+            city=user_input['city'],
+            state=user_input['state'],
+            date=date_object,
+            where_to_view=user_input['where_to_view'],
+            created_by_user_id=user_input['created_by_user_id']
+        )
 
-            db.session.add(new_show)
-            db.session.commit()
+        db.session.add(new_show)
+        db.session.commit()
 
-            return new_show.to_dict(), 201
+        return new_show.to_dict(), 201
         
         # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
@@ -548,6 +599,36 @@ class PromotorPastShows(Resource):
 
 
 api.add_resource(PromotorPastShows, '/promotorpastshows', endpoint='/promotorpastshows')
+
+class PromotorUpcomingShows(Resource):
+    def get(self):
+        if session.get('user_id'):
+            user_id = session['user_id']
+            current_date = datetime.now().date()
+            my_shows = Show.query.filter_by(created_by_user_id=user_id).options(
+                joinedload(Show.matches).joinedload(Match.match_wrestlers)
+            ).filter(Show.date > current_date).all()
+
+            my_shows_dict = [show.to_dict(only = ('id',
+                                                'name', 
+                                                'venue', 
+                                                'address', 
+                                                'date', 
+                                                'city', 
+                                                'state', 
+                                                'date',
+                                                'where_to_view',
+                                                'matches.type',
+                                                'matches.storyline',
+                                                'matches.match_wrestlers.user.name',)) for show in my_shows]
+
+            return my_shows_dict, 200
+
+        else:
+            return "User not logged in or not a promotor.", 401
+
+
+api.add_resource(PromotorUpcomingShows, '/promotorupcomingshows', endpoint='/promotorupcomingshows')
 
 class PropMatches(Resource):
     def get(self):
