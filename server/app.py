@@ -370,8 +370,8 @@ class ShowById(Resource):
         #     return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
     
     def delete(self,id):
-        show = Show.query.filter(Show.id == id).first()
-        if session.get('user_id') and session.get('role') == 'promoter':
+            show = Show.query.filter(Show.id == id).first()
+        # if session.get('user_id') and session.get('role') == 'promoter':
             if show:
                 db.session.delete(show)
                 db.session.commit()
@@ -379,8 +379,8 @@ class ShowById(Resource):
             
             else:
                 return {'error': 'Show not found. Please try again.'}, 404
-        else: 
-            return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
+        # else: 
+        #     return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
 
 api.add_resource(ShowById,'/shows/<int:id>', endpoint = 'shows/<int:id>')
 
