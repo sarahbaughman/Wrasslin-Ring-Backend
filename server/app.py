@@ -344,15 +344,16 @@ class ShowById(Resource):
     
     
     def patch(self, id):
-        show = Show.query.filter(Show.id == id).first()
+            show = Show.query.filter(Show.id == id).first()
     
-        if session.get('user_id') and session.get('role') == 'promoter':
+        # if session.get('user_id') and session.get('role') == 'promoter':
             if show:
                 user_input = request.get_json()
                 date_str = user_input.get('date')
                 
                 if date_str:
-                    date_object = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+                    # date_object = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+                    date_object = datetime.strptime(date_str, "%Y-%m-%d").date()
                     setattr(show, 'date', date_object)
                 
                 for attr in user_input:
@@ -365,8 +366,8 @@ class ShowById(Resource):
     
             else:
                 return {'error': 'Show not found. Please try again.'}, 404
-        else: 
-            return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
+        # else: 
+        #     return {'error' : 'Unauthorized, only a promoter can edit and delete shows.'}, 401
     
     def delete(self,id):
         show = Show.query.filter(Show.id == id).first()
