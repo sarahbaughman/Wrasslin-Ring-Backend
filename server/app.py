@@ -243,22 +243,61 @@ class MatchById(Resource):
         else:
             return {'error': 'Match not found. Please try again.'}, 404
 
-    def patch(self, id):
+    # def patch(self, id):
         
+    #         match = Match.query.filter(Match.id == id).first()
+    #     # if session.get('user_id') and session.get('role') == 'promoter':
+    #         if match:
+    #             user_input = request.get_json()
+    #             match_data = user_input['match']
+
+    #             for attr in match_data:
+    #                 setattr(match_data, attr, request.get_json()[attr])
+    #             # db.session.add(match)
+    #             # db.session.commit()
+
+    #             wrestlers = user_input['wrestlers']
+    #             for wrestler in wrestlers:
+    #                 for attr in wrestler:
+    #                     setattr(wrestler, attr, request.get_json()[attr])
+    #             db.session.add(match)
+    #             db.session.commit()
+
+
+    #             return match.to_dict(only = ('storyline', 'type', 'show.name', 'match_wrestlers.user.name', 'match_wrestlers.user.id')), 200
+            
+    #         else:
+    #             return {'error': 'Match not found. Please try again.'}, 404
+            
+        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+    def patch(self, id):
         match = Match.query.filter(Match.id == id).first()
-        if session.get('user_id') and session.get('role') == 'promoter':
-            if match:
-                for attr in request.get_json():
-                    setattr(match, attr, request.get_json()[attr])
-                db.session.add(match)
-                db.session.commit()
-                return match.to_dict(only = ('storyline', 'type', 'show.name', 'match_wrestlers.user.name', 'match_wrestlers.user.id')), 200
-            
-            else:
-                return {'error': 'Match not found. Please try again.'}, 404
-            
-        return {'error': '401 User not authorized to view this content. Please try again.'}, 401
-    
+        
+        if match:
+            user_input = request.get_json()
+            match_data = user_input['match']
+
+            for attr in match_data:
+                setattr(match, attr, match_data[attr])
+
+            wrestlers = user_input['wrestlers']
+            match_wrestlers = []
+            for wrestler_data in wrestlers:
+                user_id = wrestler_data['user_id']
+                wrestler = MatchWrestler.query.filter_by(match_id=match.id, user_id=user_id).first()
+                if wrestler is None:
+                    wrestler = MatchWrestler(match_id=match.id, user_id=user_id)
+                match_wrestlers.append(wrestler)
+
+            match.match_wrestlers = match_wrestlers
+            db.session.add(match)
+            db.session.commit()
+
+            return match.to_dict(only = ('id','storyline', 'type', 'show', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)), 200
+
+        else:
+            return {'error': 'Match not found. Please try again.'}, 404
+
     def delete(self,id):
         match = Match.query.filter(Match.id == id).first()
         if session.get('user_id') and session.get('role') == 'promoter':
