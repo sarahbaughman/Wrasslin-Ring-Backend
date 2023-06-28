@@ -142,18 +142,17 @@ def create_users():
     loki.password_hash = 'loki'
     
     evander = User(
-        name = 'Evander James',
+        name = 'Mantequilla',
         regions = "Northeast",
-        weight = '225',
+        weight = '200',
         phone = '101-101-1010',
-        email = 'evanderjames@gmail.com',
-        instagram = '@evanderjames',
-        image = 'https://static.wikia.nocookie.net/prowrestling/images/4/49/Evander_James_-_0443c4.jpg/revision/latest/scale-to-width-down/250?cb=20190326021441',
-        username = 'evanderjames',
-        # _password_hash = 'evanderjames',
+        email = 'mantequilla@gmail.com',
+        instagram = '@mantequilla',
+        image = 'https://pbs.twimg.com/profile_images/1542523638644998146/siTY7Kvr_400x400.jpg',
+        username = 'mantequilla',
         role = 'wrestler',
         )
-    evander.password_hash = 'evanderjames'
+    evander.password_hash = 'mantequilla'
 
     sarah = User(
         name = 'Sarah Baughman',

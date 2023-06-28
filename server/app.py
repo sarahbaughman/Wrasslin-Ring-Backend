@@ -251,8 +251,8 @@ class MatchById(Resource):
             return {'error': 'Match not found. Please try again.'}, 404
 
     def delete(self,id):
-        match = Match.query.filter(Match.id == id).first()
-        if session.get('user_id') and session.get('role') == 'promoter':
+            match = Match.query.filter(Match.id == id).first()
+        #if session.get('user_id') and session.get('role') == 'promoter':
             if match:
                 db.session.delete(match)
                 db.session.commit()
@@ -261,7 +261,7 @@ class MatchById(Resource):
             else:
                 return {'error': 'Match not found. Please try again.'}, 404
             
-        return {'error': '401 User not authorized to view this content. Please try again.'}, 401
+        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
 
 api.add_resource(MatchById,'/matches/<int:id>', endpoint = 'matches/<int:id>')
 
