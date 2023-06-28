@@ -178,7 +178,7 @@ api.add_resource(Users, '/users')
 class Matches(Resource):
     def get(self):
         matches = Match.query.all()
-        matches_dict = [m.to_dict(only = ('storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
+        matches_dict = [m.to_dict(only = ('id', 'storyline', 'type', 'show.name', 'show_id', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in matches]
 
         return matches_dict, 200
 
@@ -243,33 +243,6 @@ class MatchById(Resource):
         else:
             return {'error': 'Match not found. Please try again.'}, 404
 
-    # def patch(self, id):
-        
-    #         match = Match.query.filter(Match.id == id).first()
-    #     # if session.get('user_id') and session.get('role') == 'promoter':
-    #         if match:
-    #             user_input = request.get_json()
-    #             match_data = user_input['match']
-
-    #             for attr in match_data:
-    #                 setattr(match_data, attr, request.get_json()[attr])
-    #             # db.session.add(match)
-    #             # db.session.commit()
-
-    #             wrestlers = user_input['wrestlers']
-    #             for wrestler in wrestlers:
-    #                 for attr in wrestler:
-    #                     setattr(wrestler, attr, request.get_json()[attr])
-    #             db.session.add(match)
-    #             db.session.commit()
-
-
-    #             return match.to_dict(only = ('storyline', 'type', 'show.name', 'match_wrestlers.user.name', 'match_wrestlers.user.id')), 200
-            
-    #         else:
-    #             return {'error': 'Match not found. Please try again.'}, 404
-            
-        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
     def patch(self, id):
         match = Match.query.filter(Match.id == id).first()
         
@@ -658,9 +631,11 @@ class PromotorUpcomingShows(Resource):
                                                 'state', 
                                                 'date',
                                                 'where_to_view',
+                                                'matches.id',
                                                 'matches.type',
                                                 'matches.storyline',
-                                                'matches.match_wrestlers.user.name',)) for show in my_shows]
+                                                'matches.match_wrestlers.user.name',
+                                                )) for show in my_shows]
 
             return my_shows_dict, 200
 
@@ -673,7 +648,7 @@ api.add_resource(PromotorUpcomingShows, '/promotorupcomingshows', endpoint='/pro
 class PropMatches(Resource):
     def get(self):
         matches = ProposedMatch.query.all()
-        matches_dict = [m.to_dict(only = ('storyline', 'type', 'proposed_match_wrestlers.user.name', 'proposed_match_wrestlers.user.id', 'submitted_user_name', 'submitted_user_id')) for m in matches]
+        matches_dict = [m.to_dict(only = ('id','storyline', 'type', 'proposed_match_wrestlers.user.name', 'proposed_match_wrestlers.user.id', 'submitted_user_name', 'submitted_user_id')) for m in matches]
 
         return matches_dict, 200
 
@@ -736,7 +711,7 @@ class PastMatchesByUserId(Resource):
             user_id = session['user_id']
             current_date = datetime.now().date()
             my_matches = Match.query.join(Match.match_wrestlers).join(Match.show).filter(MatchWrestler.user_id == user_id, Show.date < current_date).all()
-            my_matches_dict = [m.to_dict(only=('storyline', 'type', 'show.name', 'show.date', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in my_matches]
+            my_matches_dict = [m.to_dict(only=('id','storyline', 'type', 'show.name', 'show.date', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in my_matches]
             return my_matches_dict, 200
         else:
             return "User not logged in", 401
@@ -750,7 +725,7 @@ class UpcomingMatchesByUserId(Resource):
             user_id = session['user_id']
             current_date = datetime.now().date()
             my_matches = Match.query.join(Match.match_wrestlers).join(Match.show).filter(MatchWrestler.user_id == user_id, Show.date > current_date).all()
-            my_matches_dict = [m.to_dict(only=('storyline', 'type', 'show.name', 'show.date', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in my_matches]
+            my_matches_dict = [m.to_dict(only=('id','storyline', 'type', 'show.name', 'show.date', 'match_wrestlers.user.name', 'match_wrestlers.user.id',)) for m in my_matches]
             return my_matches_dict, 200
         else:
             return "User not logged in", 401

@@ -135,7 +135,7 @@ class Match(db.Model, SerializerMixin):
     show_id = db.Column(db.Integer, db.ForeignKey('shows.id'), nullable = True)
     show = db.relationship('Show', back_populates = 'matches')
 
-    match_wrestlers = db.relationship('MatchWrestler', back_populates = 'match')
+    match_wrestlers = db.relationship('MatchWrestler', back_populates = 'match', cascade = 'all, delete-orphan')
     users = association_proxy('match_wrestlers', 'user', creator=lambda u: MatchWrestler(user = u))
 
     def __repr__(self):
@@ -184,7 +184,7 @@ class Show(db.Model, SerializerMixin):
     promotion_id = db.Column(db.Integer, db.ForeignKey('promotions.id'))
     promotion = db.relationship('Promotion', back_populates = 'shows')
 
-    matches = db.relationship('Match', back_populates = 'show')
+    matches = db.relationship('Match', back_populates = 'show', cascade = 'all, delete-orphan')
 
     def __repr__(self):
         return f'Show {self.id} : {self.name}'

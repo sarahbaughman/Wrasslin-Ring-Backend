@@ -134,7 +134,7 @@ def create_users():
         phone = '999-999-9999',
         email = 'loki@gmail.com',
         instagram = '@lokiwrestler',
-        image = 'https://static.wikia.nocookie.net/prowrestling/images/1/14/Low_Ki.png/revision/latest?cb=20200617003139',
+        image = 'https://www.pngkit.com/png/detail/169-1690692_brandon-silvestry-wwe-low-ki.png',
         username = 'loki',
         # _password_hash = 'loki',
         role = 'wrestler',
