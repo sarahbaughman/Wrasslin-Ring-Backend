@@ -212,27 +212,6 @@ class Matches(Resource):
         
                 
 
-            # user_input = request.get_json()
-            # new_match = Match(
-            #     type = user_input['type'],
-            #     storyline = user_input['storyline'],
-            #     show_id = user_input['show_id'],
-            # )
-            
-            # db.session.add(new_match)
-            # db.session.commit()
-
-            # new_match_response = {
-            #         "type" : new_match.type,
-            #         "storyline" : new_match.storyline,
-            #         "show_id" : new_match.show_id,
-            #         "id" : new_match.id,
-            # }
-
-            # return new_match_response, 201
-        
-        # return {'error': '401 User not authorized to view this content. Please try again.'}, 401
-
 api.add_resource(Matches,'/matches', endpoint = 'matches')
 
 class MatchById(Resource):
